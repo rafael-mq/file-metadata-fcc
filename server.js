@@ -1,23 +1,40 @@
-'use strict';
+'use strict'
 
-var express = require('express');
-var cors = require('cors');
+var express = require('express')
+var cors = require('cors')
+var multer = require('multer')
 
 // require and use "multer"...
 
-var app = express();
+var app = express()
 
-app.use(cors());
-app.use('/public', express.static(process.cwd() + '/public'));
+var storage = multer.diskStorage({
+  destination: '/tmp/my-uploads',
+  filename: function (req, file, cb) {
+    cb(null, file.fieldname + '-' + Date.now())
+  }
+})
+var upload = multer({ storage })
+
+app.use(cors())
+app.use('/public', express.static(process.cwd() + '/public'))
 
 app.get('/', function (req, res) {
-     res.sendFile(process.cwd() + '/views/index.html');
-  });
+  res.sendFile(process.cwd() + '/views/index.html')
+})
 
-app.get('/hello', function(req, res){
-  res.json({greetings: "Hello, API"});
-});
+app.post('/api/fileanalyse', upload.single('upfile'), (req, res) => {
+  res.json({
+    name: req.file.originalname,
+    type: req.file.mimetype,
+    size: req.file.size
+  })
+})
+
+app.get('/hello', function (req, res) {
+  res.json({ greetings: 'Hello, API' })
+})
 
 app.listen(process.env.PORT || 3000, function () {
-  console.log('Node.js listening ...');
-});
+  console.log('Node.js listening ...')
+})
